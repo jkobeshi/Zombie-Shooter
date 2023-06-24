@@ -1,0 +1,202 @@
+// Project identifier: 9504853406CBAC39EE89AA3AD238AA12CA198043
+
+#include "P2random.h"
+#include "zombbb.h"
+void Game::get_options(int argc, char** argv) {
+	int gotopt;
+	int option_index = 0;
+	option long_opts[] = {
+		{ "verbose", no_argument, nullptr, 'v' },
+		{ "statistics", required_argument, nullptr, 's' },
+		{ "median", no_argument, nullptr, 'm'},
+		{ "help", no_argument, nullptr, 'h' }
+	};
+	while ((gotopt = getopt_long(argc, argv, "vs:mh", long_opts, &option_index)) != -1) {
+		switch (gotopt) {
+		case 'v':
+			verb = 1;
+			break;
+
+		case 's':
+			stat = 1;
+			entries = atoi(optarg);
+			break;
+
+		case 'm':
+			med = 1;
+			break;
+
+		case 'h':
+			cout << "A Very Helpful Message!\n";
+			exit(0);
+			break;
+		}
+	}
+}
+
+
+void Game::run() {
+	string disp, na;
+	uint32_t nzomb, round, di, sp, he;
+	getline(cin, disp);
+	cin >> disp >> quiv_cap >> disp
+		>> seed >> disp >> max_rand_dis
+		>> disp >> max_rand_spd >> disp
+		>> max_rand_hlth;
+	P2random::initialize(seed, max_rand_dis, max_rand_spd, max_rand_hlth);
+
+	uint32_t quiv, ind = 0, i, kld = 0, m = 1, rnd = 0;
+	priority_queue<zombie*, vector<zombie*>, roundComp> mstAct;
+	priority_queue<zombie*, vector<zombie*>, roundComp2> lstAct;
+	priority_queue<uint32_t, vector<uint32_t>, less<uint32_t>> upper;
+	priority_queue<uint32_t, vector<uint32_t>, greater<uint32_t>> lower;
+	
+	cin >> disp >> disp >> round;
+	cout << "HI\n";
+	while (!(graveyard.size() >= mZomb.size() && cin.fail())) {
+		rnd++;
+		if (verb) {
+			cout << "Round: " << rnd << "\n";
+		}
+		quiv = quiv_cap;
+		for (i = 0; i < ind; ++i) {
+			if (mZomb[i].hlth > 0) {
+				if (mZomb[i].dist <= mZomb[i].spd) {
+					mZomb[i].dist = 0;
+					if (life) {
+						kld = i;
+						life = 0;
+					}
+				}
+				else {
+					mZomb[i].dist -= mZomb[i].spd;
+				}
+				if (verb) {
+					cout << "Moved: " << mZomb[i].name << " (distance: " << mZomb[i].dist
+						<< ", speed: " << mZomb[i].spd << ", health: " << mZomb[i].hlth << ")\n";
+				}
+			}
+		}
+		if (!life) {
+			cout << "DEFEAT IN ROUND " << rnd << "! " << mZomb[kld].name << " ate your brains!\n";
+			break;
+		}
+		if (round == rnd && !cin.fail()) {
+			cin >> disp >> nzomb;
+			for (i = 0; i < nzomb; ++i) {
+				na = P2random::getNextZombieName();
+				di = P2random::getNextZombieDistance();
+				sp = P2random::getNextZombieSpeed();
+				he = P2random::getNextZombieHealth();
+				mZomb.push_back({ na, round, he, sp, di });
+			}
+			cin >> disp >> nzomb;
+			for (i = 0; i < nzomb; ++i) {
+				cin >> na >> disp >> di >> disp >> sp >> disp >> he;
+				mZomb.push_back({ na, round, he, sp, di });
+			}
+			while (ind < uint32_t(mZomb.size())) {
+				que.push(&mZomb[ind]);
+				if (verb) {
+					cout << "Created: " << mZomb[ind].name << " (distance: " << mZomb[ind].dist
+						<< ", speed: " << mZomb[ind].spd << ", health: " << mZomb[ind].hlth << ")\n";
+				}
+				++ind;
+			}
+			if (!cin.fail()) {
+				cin >> disp >> disp >> round;
+			}
+		}
+		while (quiv > 0 && !(que.empty())) {
+			if (que.top()->hlth <= quiv) {
+				quiv -= que.top()->hlth;
+				que.top()->hlth = 0;
+				if (verb) {
+					cout << "Destroyed: " << que.top()->name << " (distance: " << que.top()->dist
+						<< ", speed: " << que.top()->spd << ", health: " << que.top()->hlth << ")\n";
+				}
+				graveyard.push_back(que.top());
+				que.top()->round = rnd - que.top()->round + 1;
+				mstAct.push(que.top());
+				lstAct.push(que.top());
+				lower.push(que.top()->round);
+
+				if (upper.size() == lower.size()) {
+					upper.push(lower.top());
+					lower.push(upper.top());
+					upper.pop(); lower.pop();
+				}
+				if (upper.size() < lower.size()) {
+					upper.push(lower.top());
+					lower.pop();
+				}
+				que.pop();
+			}
+			else {
+				que.top()->hlth -= quiv;
+				quiv = 0;
+			}
+		}
+		if (med && !graveyard.empty()) {
+			if (!lower.empty() && upper.empty()) {
+				m = lower.top();
+			}
+			else if (lower.empty() && !upper.empty()) {
+				m = upper.top();
+			}
+			else {
+				if (upper.size() > lower.size()) {
+					m = upper.top();
+				}
+				else if (upper.size() == lower.size()) {
+					m = (upper.top() + lower.top()) / 2;
+				}
+			}
+			cout << "At the end of round " << rnd <<
+				", the median zombie lifetime is " << m << "\n";
+		}
+	}
+	if (life) {
+		cout << "VICTORY IN ROUND " << rnd << "! " << graveyard.back()->name << " was the last zombie.\n";
+	}
+	if (stat) {
+		cout << "Zombies still active: " << que.size()
+			<< "\nFirst zombies killed:\n";
+		uint32_t k = entries;
+		if (uint32_t(graveyard.size()) < entries) {
+			k = uint32_t(graveyard.size());
+		}
+		for (uint32_t j = 0; j < k; ++j) {
+			cout << graveyard[j]->name << " " << j + 1 << "\n";
+		}
+		cout << "Last zombies killed:\n";
+		for (int32_t j = int32_t(graveyard.size() - 1); j >= int32_t(graveyard.size() - k); --j) {
+			cout << graveyard[j]->name << " " << ((j + k) - int32_t(graveyard.size()) + 1) << "\n";
+		}
+		while (!(que.empty())) {
+			que.top()->round = rnd - que.top()->round + 1;
+			mstAct.push(que.top());
+			lstAct.push(que.top());
+			que.pop();
+		}
+		cout << "Most active zombies:\n";
+		uint32_t j = 0;
+		while (!mstAct.empty() && j < entries) {
+			cout << mstAct.top()->name << " " << mstAct.top()->round << "\n";
+			mstAct.pop(); ++j;
+		}
+		cout << "Least active zombies:\n";
+		j = 0;
+		while (!lstAct.empty() && j < entries) {
+			cout << lstAct.top()->name << " " << lstAct.top()->round << "\n";
+			lstAct.pop(); ++j;
+		}
+	}
+}
+
+int main(int argc, char* argv[]) {
+	Game play;
+	play.get_options(argc, argv);
+	play.run();
+	return 0;
+}

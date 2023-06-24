@@ -1,0 +1,32 @@
+# A larger test with 4000 random zombies
+quiver-capacity: 30
+random-seed: 8008135
+max-rand-distance: 100
+max-rand-speed: 10
+max-rand-health: 2
+---
+round: 1
+random-zombies: 10
+named-zombies: 0
+---
+round: 5
+random-zombies: 20
+named-zombies: 0
+---
+round: 7
+random-zombies: 3
+named-zombies: 0
+---
+round: 11
+random-zombies: 10
+named-zombies: 0
+---
+round: 12
+random-zombies: 5
+named-zombies: 0
+---
+round: 13
+random-zombies: 0
+named-zombies: 1
+McDarden distance: 101 speed: 50 health: 91
+

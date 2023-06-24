@@ -1,0 +1,46 @@
+# A larger tes
+quiver-capacity: 1
+random-seed: 5129
+max-rand-distance: 1
+max-rand-speed: 1
+max-rand-health: 1
+---
+round: 1
+random-zombies: 0
+named-zombies: 1
+MarkSchlissel distance: 6 speed: 1 health: 6
+---
+round: 7
+random-zombies: 0
+named-zombies: 1
+MarkSchlissel1 distance: 7 speed: 1 health: 7
+---
+round: 14
+random-zombies: 0
+named-zombies: 1
+MarkSchlissel2 distance: 8 speed: 1 health: 8
+---
+round: 22
+random-zombies: 0
+named-zombies: 1
+MarkSchlissel3 distance: 5 speed: 1 health: 5
+---
+round: 27
+random-zombies: 0
+named-zombies: 1
+MarkSchlissel4 distance: 3 speed: 1 health: 3
+---
+round: 30
+random-zombies: 0
+named-zombies: 1
+MarkSchlissel5 distance: 2 speed: 1 health: 2
+---
+round: 32
+random-zombies: 0
+named-zombies: 1
+MarkSchlissel6 distance: 9 speed: 1 health: 9
+---
+round: 41
+random-zombies: 0
+named-zombies: 1
+MarkSchlissel7 distance: 11 speed: 1 health: 11
